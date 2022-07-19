@@ -56,6 +56,9 @@ clf_to_clp_converter = currencies.get_pair(
 # get the current value
 clf_in_clp = clf_to_clp_converter.now()
 
+# get the latest value
+last_known_clf_in_clp = clf_to_clp_converter.latest()
+
 # get the value for a given date
 date = datetime.date(2022, 7, 5)
 clf_in_clp_on_july_fifth = clf_to_clp_converter.on_date(date=date)
