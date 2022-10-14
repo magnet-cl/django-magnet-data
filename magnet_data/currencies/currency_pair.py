@@ -113,7 +113,9 @@ class CurrencyPair:
 
     def latest(self):
         """
-        Return the current value of base_currency as counter_currency
+        Return the latest known value of the currency.
+        If a currency has predefined values (like CLF) this will return future values.
+        For everything else, it will return the same as self.now()
         """
         return self.on_date(self.last_knowable_date())
 
