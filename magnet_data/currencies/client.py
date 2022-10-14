@@ -19,9 +19,7 @@ def get_url(year: int, month: int, base_currency: str, counter_currency: str):
     base_currency = base_currency.lower()
     counter_currency = counter_currency.lower()
 
-    # Note: this previously was "if month < 10",
-    # which in Python2 is False if month is a string.
-    if not isinstance(month, str) and month < 10:
+    if month < 10:
         month = "0{}".format(month)
 
     return f"{API_URL}{base_currency}/{counter_currency}/{year}/{month}/"
