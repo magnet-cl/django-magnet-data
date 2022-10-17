@@ -84,3 +84,40 @@ class MyModel(models.Model):
     )
 
 ```
+
+
+## Contribute
+
+### Local development
+
+To develop locally, install requirements using
+[poetry](https://python-poetry.org/).
+
+```bash
+
+    poetry install
+```
+
+### Testing
+
+Test are written using the django testing framework: https://docs.djangoproject.com/en/4.1/topics/testing/
+
+All tests are stored in the `tests` folder.
+
+All new features have to be tested.
+[poetry](https://python-poetry.org/).
+
+```bash
+
+    python manage.py test
+```
+
+
+### New features
+
+To develop new features, create a pull request, specifying what you are
+fixing / adding and the issue it's addressing if there is one.
+
+All new features need a test in the `tests` folder.
+
+All tests need to pass in order for a maintainer to merge the pull request.

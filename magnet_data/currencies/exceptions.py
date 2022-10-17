@@ -1,5 +1,9 @@
-# django
+import datetime
 from django.utils.translation import ugettext_lazy as _
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .currency_pair import CurrencyPair
 
 
 class ValueNotFoundException(Exception):
@@ -12,7 +16,7 @@ class ValueNotFoundException(Exception):
         date -- the date where the value was not found
     """
 
-    def __init__(self, currency_pair, date):
+    def __init__(self, currency_pair: "CurrencyPair", date: datetime.date):
         self.currency_pair = currency_pair
         self.date = date
         self.message = _("Value for %(currency_pair)s on %(date)s was not found") % {

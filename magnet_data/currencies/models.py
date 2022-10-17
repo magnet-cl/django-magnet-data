@@ -40,5 +40,5 @@ class CurrencyValue(models.Model):
         unique_together = (("base_currency", "counter_currency", "date"),)
         ordering = ("date",)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.base_currency}/{self.counter_currency}-{self.date}-{self.value}"

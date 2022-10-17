@@ -1,8 +1,8 @@
-# django
+import datetime
 from django.utils import timezone
 
 
-def today():
+def today() -> datetime.date:
     """
     This method obtains today's date in local time
     """

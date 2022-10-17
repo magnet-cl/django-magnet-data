@@ -25,7 +25,7 @@ class CurrencyPair:
     Currently only handles pairs in which the counter currency is CLP
     """
 
-    def __init__(self, base_currency: str, counter_currency: str):
+    def __init__(self, base_currency: str, counter_currency: str) -> None:
         super().__init__()
         if base_currency not in dict(CurrencyAcronyms.django_model_choices):
             raise ValueError(f"base_currency {base_currency} is not a valid choice")
@@ -41,10 +41,10 @@ class CurrencyPair:
         self.base_currency = base_currency
         self.counter_currency = counter_currency
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.base_currency}/{self.counter_currency}"
 
-    def last_knowable_date(self):
+    def last_knowable_date(self) -> datetime.date:
         today = utils.today()
 
         # only CLF values are known beforehand
@@ -58,19 +58,19 @@ class CurrencyPair:
 
         return datetime.date(today.year + 1, 1, 9)
 
-    def is_convertion_possible(self, date):
+    def is_conversion_possible(self, date: datetime.date) -> bool:
         """
-        Returns if the conversion s possible. Currently all future requests are being
-        deneid except for CLF conversions, since it's published beforehand
+        Returns if the conversion is possible. Currently all future requests are being
+        denied except for CLF conversions, since it's published beforehand
         """
         return self.last_knowable_date() >= date
 
-    def on_date(self, date):
+    def on_date(self, date: datetime.date) -> Decimal:
         """returns the value for a given date"""
         if self.base_currency == self.counter_currency:
             return 1
 
-        if not self.is_convertion_possible(date):
+        if not self.is_conversion_possible(date):
             raise ValueNotFoundException(self, date)
 
         CurrencyValue = apps.get_model(
@@ -105,13 +105,13 @@ class CurrencyPair:
         cache.set(cache_key, currency_value.value)
         return currency_value.value
 
-    def now(self):
+    def now(self) -> Decimal:
         """
         Return the current value of base_currency as counter_currency
         """
         return self.on_date(utils.today())
 
-    def latest(self):
+    def latest(self) -> Decimal:
         """
         Return the latest known value of the currency.
         If a currency has predefined values (like CLF) this will return future values.
@@ -119,5 +119,5 @@ class CurrencyPair:
         """
         return self.on_date(self.last_knowable_date())
 
-    def on_month(self, year, month):
+    def on_month(self, year: int, month: int) -> Decimal:
         raise NotImplementedError(f"{self.__class__.__name__}.on_month")

@@ -4,7 +4,7 @@ from magnet_data.currencies.currency_pair import CurrencyPair
 
 class Currencies(CurrencyAcronyms):
     @staticmethod
-    def get_pair(base_currency, counter_currency):
+    def get_pair(base_currency: str, counter_currency: str) -> CurrencyPair:
         """
         Returns a CurrencyPair object
         """
@@ -15,6 +15,6 @@ class Currencies(CurrencyAcronyms):
 
 
 class MagnetDataClient:
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.currencies = Currencies()

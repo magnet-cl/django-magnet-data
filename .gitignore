@@ -130,3 +130,5 @@ dmypy.json
 
 # Do not commit Poetry lockfiles for libraries
 poetry.lock
+
+.tags

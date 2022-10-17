@@ -11,7 +11,7 @@ from django.apps import apps
 from magnet_data.currencies.urls import API_URL
 
 
-def get_url(year: int, month: int, base_currency: str, counter_currency: str):
+def get_url(year: int, month: int, base_currency: str, counter_currency: str) -> str:
     """
     Obtain the api url to get all the values of {base_currency} as {counter_currency}
     on month {month} of the year {year}
@@ -25,7 +25,8 @@ def get_url(year: int, month: int, base_currency: str, counter_currency: str):
     return f"{API_URL}{base_currency}/{counter_currency}/{year}/{month}/"
 
 
-def update_values(year: int, month: int, base_currency: str, counter_currency: str):
+def update_values(year: int, month: int, base_currency: str,
+                  counter_currency: str) -> None:
     """
     Obtain all values of the {month}-{year} month from {base_currency} to
     {counter_currency}
