@@ -51,3 +51,26 @@ class TestCurrencies(TestCase):
             clf_to_clp_converter.last_knowable_date(),
             utils.today()
         )
+
+    def test_inverse_currencies(self):
+        magnet_data_client = MagnetDataClient()
+        currencies = magnet_data_client.currencies
+
+        clp_to_clf_converter = currencies.get_pair(currencies.CLP, currencies.CLF)
+        # same as
+        clp_to_clf_converter = currencies.get_pair(
+            base_currency=currencies.CLP, counter_currency=currencies.CLF
+        )
+
+        # get the current value
+        clf_in_clp = clp_to_clf_converter.now()
+        self.assertLess(clf_in_clp, 1)
+
+        # get the latest value
+        clf_in_clp = clp_to_clf_converter.latest()
+        self.assertLess(clf_in_clp, 1)
+
+        # get the value for a given date
+        date = datetime.date(2022, 7, 5)
+        clf_in_clp_on_july_fifth = clp_to_clf_converter.on_date(date=date)
+        self.assertEqual(clf_in_clp_on_july_fifth, 1 / Decimal("33152.680000"))
