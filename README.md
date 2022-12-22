@@ -121,3 +121,17 @@ fixing / adding and the issue it's addressing if there is one.
 All new features need a test in the `tests` folder.
 
 All tests need to pass in order for a maintainer to merge the pull request.
+
+
+### Publish
+
+Use poetry to publish. You'll need a pypi token to publish in the project
+root.
+
+On the project root, run:
+
+```bash
+
+    poetry build
+    poetry publish
+```

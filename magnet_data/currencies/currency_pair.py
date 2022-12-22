@@ -24,6 +24,7 @@ class CurrencyPair:
 
     Currently only handles pairs in which the counter currency is CLP
     """
+    inverse_value = False
 
     def __init__(self, base_currency: str, counter_currency: str) -> None:
         super().__init__()
@@ -31,7 +32,10 @@ class CurrencyPair:
             raise ValueError(f"base_currency {base_currency} is not a valid choice")
 
         if counter_currency != CurrencyAcronyms.CLP:
-            raise NotImplementedError
+            if base_currency != CurrencyAcronyms.CLP:
+                raise NotImplementedError
+            counter_currency, base_currency = base_currency, counter_currency
+            self.inverse_value = True
 
         if counter_currency not in dict(CurrencyAcronyms.django_model_choices):
             raise ValueError(
@@ -43,6 +47,12 @@ class CurrencyPair:
 
     def __str__(self) -> str:
         return f"{self.base_currency}/{self.counter_currency}"
+
+    def cast_value(self, value):
+        decimal_value = Decimal(value)
+        if self.inverse_value:
+            return 1 / decimal_value
+        return decimal_value
 
     def last_knowable_date(self) -> datetime.date:
         today = utils.today()
@@ -68,7 +78,7 @@ class CurrencyPair:
     def on_date(self, date: datetime.date) -> Decimal:
         """returns the value for a given date"""
         if self.base_currency == self.counter_currency:
-            return 1
+            return self.cast_value(1)
 
         if not self.is_conversion_possible(date):
             raise ValueNotFoundException(self, date)
@@ -82,7 +92,7 @@ class CurrencyPair:
 
         value = cache.get(cache_key)
         if value:
-            return Decimal(value)
+            return self.cast_value(value)
 
         queryset = CurrencyValue.objects.filter(
             base_currency=self.base_currency,
@@ -103,7 +113,7 @@ class CurrencyPair:
                 raise ValueNotFoundException(self, date)
 
         cache.set(cache_key, currency_value.value)
-        return currency_value.value
+        return self.cast_value(currency_value.value)
 
     def now(self) -> Decimal:
         """
