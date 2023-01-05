@@ -8,6 +8,7 @@ from django.test.testcases import TestCase
 # magnet data
 from magnet_data.magnet_data_client import MagnetDataClient
 from magnet_data import utils
+from magnet_data.models import Holiday
 
 
 class TestCurrencies(TestCase):
@@ -74,3 +75,33 @@ class TestCurrencies(TestCase):
         date = datetime.date(2022, 7, 5)
         clf_in_clp_on_july_fifth = clp_to_clf_converter.on_date(date=date)
         self.assertEqual(clf_in_clp_on_july_fifth, 1 / Decimal("33152.680000"))
+
+
+class TestHolidays(TestCase):
+    def test_holidays(self):
+        magnet_data_client = MagnetDataClient()
+        self.assertEqual(Holiday.objects.count(), 0)
+        holidays = magnet_data_client.holidays
+        holidays.update(country_code=holidays.CL)
+
+        self.assertGreater(Holiday.objects.count(), 0)
+
+        self.assertFalse(holidays.is_workday(datetime.date(2023, 1, 2), holidays.CL))
+        self.assertTrue(holidays.is_workday(datetime.date(2023, 1, 3), holidays.CL))
+
+        self.assertEqual(
+            holidays.get_next_working_day(
+                country_code=holidays.CL,
+                from_date=datetime.date(2022, 12, 31),
+            ),
+            datetime.date(2023, 1, 3),
+        )
+
+        self.assertEqual(
+            holidays.get_holidays_count_during_weekdays(
+                holidays.CL,
+                datetime.date(2022, 12, 30),
+                datetime.date(2023, 1, 7),
+            ),
+            1
+        )

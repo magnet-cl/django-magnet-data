@@ -85,6 +85,37 @@ class MyModel(models.Model):
 
 ```
 
+## Holidays API
+
+Magnet data handles Chilean holidays, but is built to handle other countries
+(is just that it does not store values for other countries).
+
+Countries are specified by country code taken from: [ISO 3166 country codes](https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes).
+
+To check if a date is a holiday in a given country:
+
+``` python
+import datetime
+from magnet_data.magnet_data_client import MagnetDataClient
+
+magnet_data_client = MagnetDataClient()
+holidays = magnet_data_client.holidays
+holidays.is_workday(datetime.date(2023, 1, 2), holidays.CL)  # False
+holidays.is_workday(datetime.date(2023, 1, 3), holidays.CL)  # True
+
+# get the next day that will be a working day. This returns datetime.date(2023, 1, 3)
+holidays.get_next_working_day(
+    country_code=holidays.CL,
+    from_date=datetime.date(2022, 12, 31),
+)
+
+# get the number of holidays wasted on weekdays. This example returns 1
+holidays.get_holidays_count_during_weekdays(
+    holidays.CL,
+    datetime.date(2022, 12, 30),
+    datetime.date(2023, 1, 7),
+)
+```
 
 ## Contribute
 
