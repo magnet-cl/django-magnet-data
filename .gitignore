@@ -133,3 +133,5 @@ poetry.lock
 
 .tags
 token
+
+test_db.sqlite3
