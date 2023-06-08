@@ -5,3 +5,4 @@ from django.utils.translation import ugettext_lazy as _
 class MagnetDataConfig(AppConfig):
     name = "magnet_data"
     verbose_name = _("magnet data")
+    default_auto_field = 'django.db.models.AutoField'
