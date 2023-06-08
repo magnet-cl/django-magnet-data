@@ -31,11 +31,12 @@ class CurrencyPair:
         if base_currency not in dict(CurrencyAcronyms.django_model_choices):
             raise ValueError(f"base_currency {base_currency} is not a valid choice")
 
-        if counter_currency != CurrencyAcronyms.CLP:
-            if base_currency != CurrencyAcronyms.CLP:
-                raise NotImplementedError
-            counter_currency, base_currency = base_currency, counter_currency
-            self.inverse_value = True
+        if counter_currency != base_currency:
+            if counter_currency != CurrencyAcronyms.CLP:
+                if base_currency != CurrencyAcronyms.CLP:
+                    raise NotImplementedError
+                counter_currency, base_currency = base_currency, counter_currency
+                self.inverse_value = True
 
         if counter_currency not in dict(CurrencyAcronyms.django_model_choices):
             raise ValueError(
