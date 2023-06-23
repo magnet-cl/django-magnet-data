@@ -32,6 +32,7 @@ class Holiday(models.Model):
         ordering = ("date",)
         verbose_name = _('holiday')
         verbose_name_plural = _('holidays')
+        unique_together = (("date", "country_code"),)
 
     def __str__(self):
         return f"{self.country_code}-{self.date}"
