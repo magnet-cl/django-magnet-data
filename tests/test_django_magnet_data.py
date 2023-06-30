@@ -90,11 +90,38 @@ class TestHolidays(TestCase):
         self.assertTrue(holidays.is_workday(datetime.date(2023, 1, 3), holidays.CL))
 
         self.assertEqual(
-            holidays.get_next_working_day(
+            holidays.get_next_business_day(
                 country_code=holidays.CL,
                 from_date=datetime.date(2022, 12, 31),
             ),
             datetime.date(2023, 1, 3),
+        )
+
+        self.assertEqual(
+            holidays.get_next_business_day(
+                country_code=holidays.CL,
+                from_date=datetime.date(2022, 12, 31),
+                business_days_count=3,
+            ),
+            datetime.date(2023, 1, 5),
+        )
+
+        self.assertEqual(
+            holidays.get_next_business_day(
+                country_code=holidays.CL,
+                from_date=datetime.date(2022, 12, 31),
+                step=3,
+            ),
+            datetime.date(2023, 1, 3),
+        )
+
+        self.assertEqual(
+            holidays.get_next_business_day(
+                country_code=holidays.CL,
+                from_date=datetime.date(2023, 1, 1),
+                step=3,
+            ),
+            datetime.date(2023, 1, 4),
         )
 
         self.assertEqual(

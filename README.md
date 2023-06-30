@@ -103,10 +103,33 @@ holidays = magnet_data_client.holidays
 holidays.is_workday(datetime.date(2023, 1, 2), holidays.CL)  # False
 holidays.is_workday(datetime.date(2023, 1, 3), holidays.CL)  # True
 
-# get the next day that will be a working day. This returns datetime.date(2023, 1, 3)
-holidays.get_next_working_day(
+# get the next date that will be a business day. This returns datetime.date(2023, 1, 3)
+holidays.get_next_business_day(
     country_code=holidays.CL,
     from_date=datetime.date(2022, 12, 31),
+)
+
+business_days_count -- number of business days to count (default 1)
+# This returns datetime.date(2023, 1, 5)
+holidays.get_next_business_day(
+    country_code=holidays.CL,
+    from_date=datetime.date(2022, 12, 31),
+    business_days_count=3,
+)
+
+# step -- the amount by which the index increases. (default 1)
+# This returns datetime.date(2023, 1, 3)
+holidays.get_next_business_day(
+    country_code=holidays.CL,
+    from_date=datetime.date(2022, 12, 31),
+    step=3,
+)
+
+# And this returns datetime.date(2023, 1, 4)
+holidays.get_next_business_day(
+    country_code=holidays.CL,
+    from_date=datetime.date(2023, 1, 1),
+    step=3,
 )
 
 # get the number of holidays wasted on weekdays. This example returns 1
