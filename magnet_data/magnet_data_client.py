@@ -38,6 +38,12 @@ class Holidays(Countries):
 
     def is_workday(self, date, country_code: str):
         """
+        Alias for Holidays.get_next_business_day for backwards compatibility
+        """
+        return self.is_business_day(date, country_code)
+
+    def is_business_day(self, date, country_code: str):
+        """
         Returns True if the given date is not Saturday, Sunday, or
         Holiday
         Keyword arguments:
@@ -62,10 +68,20 @@ class Holidays(Countries):
                              from_date: datetime.date = None,
                              step: int = 1):
         """
+        Alias for Holidays.get_next_business_day for backwards compatibility
+        """
+        return self.get_next_business_day(country_code, working_days, from_date, step)
+
+    def get_next_business_day(self,
+                              country_code: str,
+                              business_days_count: int = 1,
+                              from_date: datetime.date = None,
+                              step: int = 1):
+        """
         Returns the next date that is a working day.
         Keyword arguments:
             country-code -- ISO 3166 country code
-            working_days -- number of working days to count (default 1)
+            business_days_count -- number of business days to count (default 1)
             from_date -- date to start counting from (default today)
             step -- the amount by which the index increases. (default 1)
         """
@@ -76,11 +92,11 @@ class Holidays(Countries):
 
         final_date = from_date
 
-        while working_days > 0:
+        while business_days_count > 0:
             final_date += datetime.timedelta(days=step)
 
             if self.is_workday(date=final_date, country_code=country_code):
-                working_days -= 1
+                business_days_count -= 1
 
         return final_date
 
