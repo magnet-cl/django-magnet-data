@@ -38,9 +38,7 @@ class Holiday(models.Model):
         return f"{self.country_code}-{self.date}"
 
     @classmethod
-    def update_holidays(cls, country_code):
-        year = datetime.date.today().year
-
+    def update_holidays(cls, country_code, year):
         request = Request(
             f'https://data.magnet.cl/api/v1/holidays/{country_code.lower()}/{year}/'
         )

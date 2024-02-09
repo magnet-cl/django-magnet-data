@@ -20,21 +20,21 @@ class Currencies(CurrencyAcronyms):
 
 class Holidays(Countries):
     def __init__(self):
-        self.last_updated = None
+        self.last_updated = {}
         self.cls = apps.get_model(
             app_label='magnet_data',
             model_name='Holiday'
         )
 
-    def update(self, country_code: str):
+    def update(self, country_code: str, year):
         """
         Update values stored in the database with what the api returned
         """
         now = datetime.datetime.now()
         threshold = now - datetime.timedelta(1)
-        if self.last_updated is None or self.last_updated < threshold:
-            self.last_updated = now
-            self.cls.update_holidays(country_code=country_code.upper())
+        if self.last_updated.get(year) is None or self.last_updated.get(year) < threshold:
+            self.last_updated[year] = now
+            self.cls.update_holidays(country_code=country_code.upper(), year=year)
 
     def is_workday(self, date, country_code: str):
         """
@@ -50,7 +50,7 @@ class Holidays(Countries):
             from_date -- date to check
             country-code -- ISO 3166 country code
         """
-        self.update(country_code)
+        self.update(country_code, date.year)
         if date.weekday() == 5:  # Saturday
             return False
 
@@ -85,15 +85,21 @@ class Holidays(Countries):
             from_date -- date to start counting from (default today)
             step -- the amount by which the index increases. (default 1)
         """
-        self.update(country_code)
-
         if from_date is None:
             from_date = utils.today()
+
+        last_updated_year = from_date.year
+
+        self.update(country_code, year=last_updated_year)
 
         final_date = from_date
 
         while business_days_count > 0:
             final_date += datetime.timedelta(days=step)
+            
+            if last_updated_year != final_date.year:
+                last_updated_year = final_date.year
+                self.update(country_code, year=last_updated_year)
 
             if self.is_workday(date=final_date, country_code=country_code):
                 business_days_count -= 1
@@ -112,7 +118,8 @@ class Holidays(Countries):
             start_date -- date to start counting from
             end_date -- date where to stop counting
         """
-        self.update(country_code)
+        self.update(country_code, start_date.year)
+        self.update(country_code, end_date.year)
         days = 0
 
         holidays_dates = self.cls.objects.filter(
