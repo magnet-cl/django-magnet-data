@@ -82,7 +82,7 @@ class TestHolidays(TestCase):
         magnet_data_client = MagnetDataClient()
         self.assertEqual(Holiday.objects.count(), 0)
         holidays = magnet_data_client.holidays
-        holidays.update(country_code=holidays.CL)
+        holidays.update(country_code=holidays.CL, year=2023)
 
         self.assertGreater(Holiday.objects.count(), 0)
 
@@ -132,3 +132,6 @@ class TestHolidays(TestCase):
             ),
             1
         )
+
+        self.assertFalse(holidays.is_workday(datetime.date(2020, 9, 18), holidays.CL))
+        self.assertFalse(holidays.is_workday(datetime.date(2024, 1, 1), holidays.CL))
