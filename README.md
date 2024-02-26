@@ -1,6 +1,8 @@
 # django-magnet-data
 An API client for data.magnet.cl
 
+![Django tests](https://github.com/magnet-cl/django-magnet-data/actions/workflows/django.yml/badge.svg)
+
 ## Features
 
 -   Obtain values for multiple currencies in CLP
