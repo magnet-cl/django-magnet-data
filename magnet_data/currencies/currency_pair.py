@@ -33,10 +33,9 @@ class CurrencyPair:
 
         if counter_currency != base_currency:
             if counter_currency != CurrencyAcronyms.CLP:
-                if base_currency != CurrencyAcronyms.CLP:
-                    raise NotImplementedError
-                counter_currency, base_currency = base_currency, counter_currency
-                self.inverse_value = True
+                if base_currency == CurrencyAcronyms.CLP:
+                    counter_currency, base_currency = base_currency, counter_currency
+                    self.inverse_value = True
 
         if counter_currency not in dict(CurrencyAcronyms.django_model_choices):
             raise ValueError(
@@ -95,26 +94,39 @@ class CurrencyPair:
         if value:
             return self.cast_value(value)
 
-        queryset = CurrencyValue.objects.filter(
-            base_currency=self.base_currency,
-            counter_currency=self.counter_currency,
-            date=date,
-        )
-
-        try:
-            currency_value = queryset.get()
-        except CurrencyValue.DoesNotExist:
-            update_values(
-                date.year, date.month, self.base_currency, self.counter_currency
+        if self.counter_currency == CurrencyAcronyms.CLP:
+            queryset = CurrencyValue.objects.filter(
+                base_currency=self.base_currency,
+                counter_currency=self.counter_currency,
+                date=date,
             )
 
             try:
-                currency_value = queryset.get()
+                value = queryset.get().value
             except CurrencyValue.DoesNotExist:
-                raise ValueNotFoundException(self, date)
+                update_values(
+                    date.year, date.month, self.base_currency, self.counter_currency
+                )
 
-        cache.set(cache_key, currency_value.value)
-        return self.cast_value(currency_value.value)
+                try:
+                    value = queryset.get().value
+                except CurrencyValue.DoesNotExist:
+                    raise ValueNotFoundException(self, date)
+        else:
+            base_value = CurrencyPair(
+                base_currency=self.base_currency,
+                counter_currency=CurrencyAcronyms.CLP,
+            ).on_date(date)
+
+            counter_value = CurrencyPair(
+                base_currency=self.counter_currency,
+                counter_currency=CurrencyAcronyms.CLP,
+            ).on_date(date)
+
+            value = counter_value / base_value
+
+        cache.set(cache_key, value)
+        return self.cast_value(value)
 
     def now(self) -> Decimal:
         """

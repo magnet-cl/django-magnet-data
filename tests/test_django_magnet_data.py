@@ -76,6 +76,28 @@ class TestCurrencies(TestCase):
         clf_in_clp_on_july_fifth = clp_to_clf_converter.on_date(date=date)
         self.assertEqual(clf_in_clp_on_july_fifth, 1 / Decimal("33152.680000"))
 
+    def test_non_CLP_currencies(self):
+        magnet_data_client = MagnetDataClient()
+        currencies = magnet_data_client.currencies
+
+        usd_to_clf_converter = currencies.get_pair(currencies.USD, currencies.CLF)
+
+        # get the current value
+        clf_in_usd = usd_to_clf_converter.now()
+        self.assertGreater(clf_in_usd, 1)
+
+        # get the latest value
+        clf_in_usd = usd_to_clf_converter.latest()
+        self.assertGreater(clf_in_usd, 1)
+
+        # get the value for a given date
+        date = datetime.date(2022, 7, 5)
+        clf_in_usd_on_july_fifth = usd_to_clf_converter.on_date(date=date)
+        self.assertEqual(
+            clf_in_usd_on_july_fifth,
+            Decimal("33152.68") / Decimal("927.53")
+        )
+
 
 class TestHolidays(TestCase):
     def test_holidays(self):
