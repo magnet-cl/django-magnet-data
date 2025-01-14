@@ -60,6 +60,9 @@ class CurrencyPair:
         # only CLF values are known beforehand
         if self.base_currency != CurrencyAcronyms.CLF:
             return today
+        elif self.counter_currency != CurrencyAcronyms.CLP:
+            # CLF is kwnown in the future, but only in CLP
+            return today
 
         if today.day < 10:
             return datetime.date(today.year, today.month, 9)

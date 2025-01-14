@@ -98,6 +98,17 @@ class TestCurrencies(TestCase):
             Decimal("33152.68") / Decimal("927.53")
         )
 
+    def test_non_CLP_currencies_last_knowable_dates(self):
+        magnet_data_client = MagnetDataClient()
+        currencies = magnet_data_client.currencies
+
+        usd_to_clf_converter = currencies.get_pair(currencies.CLF, currencies.USD)
+
+        # check future dates since only CLF is known in the future
+        assert usd_to_clf_converter.last_knowable_date() == utils.today()
+        clf_in_usd_on_tomorrow = usd_to_clf_converter.latest()
+        self.assertLess(clf_in_usd_on_tomorrow, 1)
+
 
 class TestHolidays(TestCase):
     def test_holidays(self):
