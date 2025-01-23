@@ -50,7 +50,7 @@ class Holiday(models.Model):
             date_string = holiday_data['date']
             date = datetime.datetime.strptime(date_string, '%Y-%m-%d').date()
             name = holiday_data['name']
-            cls.objects.get_or_create(
+            cls.objects.update_or_create(
                 date=date,
                 country_code=country_code,
                 defaults={
@@ -71,8 +71,10 @@ class Holiday(models.Model):
             date_string = holiday_data['date']
             date = datetime.datetime.strptime(date_string, '%Y-%m-%d').date()
             name = holiday_data['name']
-            cls.objects.get_or_create(
+            cls.objects.update_or_create(
                 date=date,
-                name=name,
-                country_code=country_code
+                country_code=country_code,
+                defaults={
+                    'name': name,
+                },
             )
