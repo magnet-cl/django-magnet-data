@@ -1,6 +1,8 @@
 # standard library
-import datetime
 from decimal import Decimal
+from unittest.mock import MagicMock
+from unittest.mock import patch
+import datetime
 
 # django
 from django.test.testcases import TestCase
@@ -168,3 +170,58 @@ class TestHolidays(TestCase):
 
         self.assertFalse(holidays.is_workday(datetime.date(2020, 9, 18), holidays.CL))
         self.assertFalse(holidays.is_workday(datetime.date(2024, 1, 1), holidays.CL))
+
+    @patch('magnet_data.holidays.models.urlopen')
+    def test_holiday_name_change(self, mock_urlopen):
+        initial_response_content = '''
+        {
+            "objects": [
+                {
+                    "countryCode": "CL",
+                    "date": "2023-01-01",
+                    "name": "Feliz Año",
+                    "resourceUri": "/api/v1/holidays/cl/161/"
+                }
+            ]
+        }
+        '''
+        initial_response = MagicMock()
+        initial_response.read.return_value = initial_response_content.encode('utf-8')
+        initial_response.status = 200
+
+        # Define the second mock API response with the updated holiday name
+        updated_response = MagicMock()
+        updated_response_content = '''
+        {
+            "objects": [
+                {
+                    "countryCode": "CL",
+                    "date": "2023-01-01",
+                    "name": "Nuevo Año",
+                    "resourceUri": "/api/v1/holidays/cl/161/"
+                }
+            ]
+        }
+        '''
+        updated_response.status = 200
+        updated_response.read.return_value = updated_response_content.encode('utf-8')
+
+        mock_urlopen.side_effect = [initial_response, updated_response]
+        magnet_data_client = MagnetDataClient()
+        self.assertEqual(mock_urlopen.call_count, 0)
+
+        holidays = magnet_data_client.holidays
+        holidays.update(country_code=holidays.CL, year=2023)
+        self.assertEqual(mock_urlopen.call_count, 1)
+
+        holiday_queryset = Holiday.objects.filter(
+            country_code=holidays.CL,
+            date='2023-01-01',
+        )
+        self.assertTrue(holiday_queryset.filter(name="Feliz Año").exists())
+
+        # test that holiday was updated
+        holidays.reset_cache()
+        holidays.update(country_code=holidays.CL, year=2023)
+        self.assertEqual(mock_urlopen.call_count, 2)
+        self.assertTrue(holiday_queryset.filter(name="Nuevo Año").exists())

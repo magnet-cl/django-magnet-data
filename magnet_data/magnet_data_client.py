@@ -20,11 +20,14 @@ class Currencies(CurrencyAcronyms):
 
 class Holidays(Countries):
     def __init__(self):
-        self.last_updated = {}
         self.cls = apps.get_model(
             app_label='magnet_data',
             model_name='Holiday'
         )
+        self.reset_cache()
+
+    def reset_cache(self):
+        self.last_updated = {}
 
     def update(self, country_code: str, year):
         """
