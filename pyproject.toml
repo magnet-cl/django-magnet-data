@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-magnet-data"
-version = "1.2.2"
+version = "1.2.3"
 description = "An API client for data.magnet.cl"
 authors = ["Ignacio Munizaga <muni@magnet.cl>"]
 license = "MIT"
