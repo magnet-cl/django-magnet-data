@@ -121,7 +121,7 @@ class Holidays(Countries):
             start_date -- date to start counting from
             end_date -- date where to stop counting
         """
-        for year in range(start_date.year, end_date.year):
+        for year in range(start_date.year, end_date.year + 1):
             self.update(country_code, year)
 
         days = 0
