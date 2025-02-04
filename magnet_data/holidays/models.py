@@ -50,29 +50,10 @@ class Holiday(models.Model):
             date_string = holiday_data['date']
             date = datetime.datetime.strptime(date_string, '%Y-%m-%d').date()
             name = holiday_data['name']
-            cls.objects.get_or_create(
+            cls.objects.update_or_create(
                 date=date,
                 country_code=country_code,
                 defaults={
                     'name': name,
                 },
-            )
-
-        year += 1
-
-        request = Request(
-            f'https://data.magnet.cl/api/v1/holidays/{country_code.lower()}/{year}/'
-        )
-
-        response = urlopen(request)
-        data = json.loads(response.read())
-
-        for holiday_data in data['objects']:
-            date_string = holiday_data['date']
-            date = datetime.datetime.strptime(date_string, '%Y-%m-%d').date()
-            name = holiday_data['name']
-            cls.objects.get_or_create(
-                date=date,
-                name=name,
-                country_code=country_code
             )

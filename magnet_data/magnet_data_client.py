@@ -20,11 +20,14 @@ class Currencies(CurrencyAcronyms):
 
 class Holidays(Countries):
     def __init__(self):
-        self.last_updated = {}
         self.cls = apps.get_model(
             app_label='magnet_data',
             model_name='Holiday'
         )
+        self.reset_cache()
+
+    def reset_cache(self):
+        self.last_updated = {}
 
     def update(self, country_code: str, year):
         """
@@ -96,7 +99,7 @@ class Holidays(Countries):
 
         while business_days_count > 0:
             final_date += datetime.timedelta(days=step)
-            
+
             if last_updated_year != final_date.year:
                 last_updated_year = final_date.year
                 self.update(country_code, year=last_updated_year)
@@ -118,8 +121,9 @@ class Holidays(Countries):
             start_date -- date to start counting from
             end_date -- date where to stop counting
         """
-        self.update(country_code, start_date.year)
-        self.update(country_code, end_date.year)
+        for year in range(start_date.year, end_date.year + 1):
+            self.update(country_code, year)
+
         days = 0
 
         holidays_dates = self.cls.objects.filter(
