@@ -225,3 +225,70 @@ class TestHolidays(TestCase):
         holidays.update(country_code=holidays.CL, year=2023)
         self.assertEqual(mock_urlopen.call_count, 2)
         self.assertTrue(holiday_queryset.filter(name="Nuevo Año").exists())
+
+    @patch('magnet_data.holidays.models.urlopen')
+    def test_holiday_date_change(self, mock_urlopen):
+        """
+        Test that when a holiday changes date, the original date is deleted
+        """
+        Holiday.objects.create(country_code="CO", date="2023-01-01", name="Feliz Año")
+        initial_response_content = '''
+        {
+            "objects": [
+                {
+                    "countryCode": "CL",
+                    "date": "2023-01-01",
+                    "name": "Feliz Año",
+                    "resourceUri": "/api/v1/holidays/cl/161/"
+                }, {
+                    "countryCode": "CL",
+                    "date": "2024-01-01",
+                    "name": "Feliz Año",
+                    "resourceUri": "/api/v1/holidays/cl/162/"
+                }, {
+                    "countryCode": "CL",
+                    "date": "2025-01-01",
+                    "name": "Feliz Año",
+                    "resourceUri": "/api/v1/holidays/cl/162/"
+                }
+            ]
+        }
+        '''
+        initial_response = MagicMock()
+        initial_response.read.return_value = initial_response_content.encode('utf-8')
+        initial_response.status = 200
+
+        # Define the second mock API response with the updated holiday date
+        updated_response = MagicMock()
+        updated_response_content = '''
+        {
+            "objects": [
+                {
+                    "countryCode": "CL",
+                    "date": "2023-01-02",
+                    "name": "Feliz Año",
+                    "resourceUri": "/api/v1/holidays/cl/161/"
+                }
+            ]
+        }
+        '''
+        updated_response.status = 200
+        updated_response.read.return_value = updated_response_content.encode('utf-8')
+
+        mock_urlopen.side_effect = [initial_response, updated_response]
+        magnet_data_client = MagnetDataClient()
+        self.assertEqual(mock_urlopen.call_count, 0)
+
+        holidays = magnet_data_client.holidays
+        holidays.update(country_code=holidays.CL, year=2023)
+        self.assertEqual(mock_urlopen.call_count, 1)
+
+        self.assertEqual(Holiday.objects.count(), 4)
+
+        # test that holiday was updated
+        holidays.reset_cache()
+        holidays.update(country_code=holidays.CL, year=2023)
+        self.assertEqual(mock_urlopen.call_count, 2)
+        self.assertEqual(Holiday.objects.count(), 4)
+
+        self.assertTrue(Holiday.objects.filter(date="2023-01-02").count() == 1)

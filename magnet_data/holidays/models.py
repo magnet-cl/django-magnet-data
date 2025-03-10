@@ -46,14 +46,22 @@ class Holiday(models.Model):
         response = urlopen(request)
         data = json.loads(response.read())
 
+        updated_ids = []
+
         for holiday_data in data['objects']:
             date_string = holiday_data['date']
             date = datetime.datetime.strptime(date_string, '%Y-%m-%d').date()
             name = holiday_data['name']
-            cls.objects.update_or_create(
+
+            updated_ids.append(cls.objects.update_or_create(
                 date=date,
                 country_code=country_code,
                 defaults={
                     'name': name,
                 },
-            )
+            )[0].id)
+
+        cls.objects.filter(
+            date__year=year,
+            country_code=country_code,
+        ).exclude(id__in=updated_ids).delete()
