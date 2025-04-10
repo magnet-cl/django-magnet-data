@@ -11,6 +11,12 @@ from django.test.testcases import TestCase
 from magnet_data.magnet_data_client import MagnetDataClient
 from magnet_data import utils
 from magnet_data.models import Holiday
+from magnet_data.admin import HolidayAdmin
+
+from django.test import Client
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from django.contrib.admin.sites import site
 
 
 class TestCurrencies(TestCase):
@@ -42,7 +48,7 @@ class TestCurrencies(TestCase):
         currencies = magnet_data_client.currencies
 
         with self.assertRaises(ValueError):
-            currencies.get_pair('UF', currencies.CLP)
+            currencies.get_pair("UF", currencies.CLP)
 
     def test_last_knowable_date(self):
         magnet_data_client = MagnetDataClient()
@@ -51,8 +57,7 @@ class TestCurrencies(TestCase):
         clf_to_clp_converter = currencies.get_pair(currencies.CLF, currencies.CLP)
 
         self.assertGreaterEqual(
-            clf_to_clp_converter.last_knowable_date(),
-            utils.today()
+            clf_to_clp_converter.last_knowable_date(), utils.today()
         )
 
     def test_inverse_currencies(self):
@@ -96,8 +101,7 @@ class TestCurrencies(TestCase):
         date = datetime.date(2022, 7, 5)
         clf_in_usd_on_july_fifth = usd_to_clf_converter.on_date(date=date)
         self.assertEqual(
-            clf_in_usd_on_july_fifth,
-            Decimal("33152.68") / Decimal("927.53")
+            clf_in_usd_on_july_fifth, Decimal("33152.68") / Decimal("927.53")
         )
 
     def test_non_CLP_currencies_last_knowable_dates(self):
@@ -165,15 +169,15 @@ class TestHolidays(TestCase):
                 datetime.date(2022, 12, 30),
                 datetime.date(2023, 1, 7),
             ),
-            1
+            1,
         )
 
         self.assertFalse(holidays.is_workday(datetime.date(2020, 9, 18), holidays.CL))
         self.assertFalse(holidays.is_workday(datetime.date(2024, 1, 1), holidays.CL))
 
-    @patch('magnet_data.holidays.models.urlopen')
+    @patch("magnet_data.holidays.models.urlopen")
     def test_holiday_name_change(self, mock_urlopen):
-        initial_response_content = '''
+        initial_response_content = """
         {
             "objects": [
                 {
@@ -184,14 +188,14 @@ class TestHolidays(TestCase):
                 }
             ]
         }
-        '''
+        """
         initial_response = MagicMock()
-        initial_response.read.return_value = initial_response_content.encode('utf-8')
+        initial_response.read.return_value = initial_response_content.encode("utf-8")
         initial_response.status = 200
 
         # Define the second mock API response with the updated holiday name
         updated_response = MagicMock()
-        updated_response_content = '''
+        updated_response_content = """
         {
             "objects": [
                 {
@@ -202,9 +206,9 @@ class TestHolidays(TestCase):
                 }
             ]
         }
-        '''
+        """
         updated_response.status = 200
-        updated_response.read.return_value = updated_response_content.encode('utf-8')
+        updated_response.read.return_value = updated_response_content.encode("utf-8")
 
         mock_urlopen.side_effect = [initial_response, updated_response]
         magnet_data_client = MagnetDataClient()
@@ -216,7 +220,7 @@ class TestHolidays(TestCase):
 
         holiday_queryset = Holiday.objects.filter(
             country_code=holidays.CL,
-            date='2023-01-01',
+            date="2023-01-01",
         )
         self.assertTrue(holiday_queryset.filter(name="Feliz Año").exists())
 
@@ -226,13 +230,13 @@ class TestHolidays(TestCase):
         self.assertEqual(mock_urlopen.call_count, 2)
         self.assertTrue(holiday_queryset.filter(name="Nuevo Año").exists())
 
-    @patch('magnet_data.holidays.models.urlopen')
+    @patch("magnet_data.holidays.models.urlopen")
     def test_holiday_date_change(self, mock_urlopen):
         """
         Test that when a holiday changes date, the original date is deleted
         """
         Holiday.objects.create(country_code="CO", date="2023-01-01", name="Feliz Año")
-        initial_response_content = '''
+        initial_response_content = """
         {
             "objects": [
                 {
@@ -253,14 +257,14 @@ class TestHolidays(TestCase):
                 }
             ]
         }
-        '''
+        """
         initial_response = MagicMock()
-        initial_response.read.return_value = initial_response_content.encode('utf-8')
+        initial_response.read.return_value = initial_response_content.encode("utf-8")
         initial_response.status = 200
 
         # Define the second mock API response with the updated holiday date
         updated_response = MagicMock()
-        updated_response_content = '''
+        updated_response_content = """
         {
             "objects": [
                 {
@@ -271,9 +275,9 @@ class TestHolidays(TestCase):
                 }
             ]
         }
-        '''
+        """
         updated_response.status = 200
-        updated_response.read.return_value = updated_response_content.encode('utf-8')
+        updated_response.read.return_value = updated_response_content.encode("utf-8")
 
         mock_urlopen.side_effect = [initial_response, updated_response]
         magnet_data_client = MagnetDataClient()
@@ -292,3 +296,24 @@ class TestHolidays(TestCase):
         self.assertEqual(Holiday.objects.count(), 4)
 
         self.assertTrue(Holiday.objects.filter(date="2023-01-02").count() == 1)
+
+
+class AdminSiteTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.client = Client()
+        self.user = User.objects.create_superuser(
+            username="admin", email="admin@example.com", password="testpass123"
+        )
+        self.client.login(username="admin", password="testpass123")
+
+    def test_model_is_registered_in_admin(self):
+        """Ensure Holiday is registered and uses the correct admin class"""
+        self.assertIn(Holiday, site._registry)
+        self.assertIsInstance(site._registry[Holiday], HolidayAdmin)
+
+    def test_admin_changelist_view_loads(self):
+        """Ensure the changelist page loads successfully"""
+        url = reverse("admin:magnet_data_holiday_changelist")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
