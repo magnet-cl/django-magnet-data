@@ -1,7 +1,7 @@
 # django
 from django.contrib import admin
 
-from holidays.models import Holiday
+from .holidays.models import Holiday
 
 
 class HolidayAdmin(admin.ModelAdmin):
