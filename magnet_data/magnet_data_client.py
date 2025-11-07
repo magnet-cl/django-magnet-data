@@ -35,17 +35,20 @@ class Holidays(Countries):
         """
         now = datetime.datetime.now()
         threshold = now - datetime.timedelta(1)
-        if self.last_updated.get(year) is None or self.last_updated.get(year) < threshold:
+        if (
+            self.last_updated.get(year) is None
+            or self.last_updated.get(year) < threshold
+        ):
             self.last_updated[year] = now
             self.cls.update_holidays(country_code=country_code.upper(), year=year)
 
-    def is_workday(self, date, country_code: str):
+    def is_workday(self, date, country_code: str) -> bool:
         """
         Alias for Holidays.get_next_business_day for backwards compatibility
         """
         return self.is_business_day(date, country_code)
 
-    def is_business_day(self, date, country_code: str):
+    def is_business_day(self, date, country_code: str) -> bool:
         """
         Returns True if the given date is not Saturday, Sunday, or
         Holiday
@@ -79,7 +82,7 @@ class Holidays(Countries):
                               country_code: str,
                               business_days_count: int = 1,
                               from_date: datetime.date = None,
-                              step: int = 1):
+                              step: int = 1) -> datetime.date:
         """
         Returns the next date that is a working day.
         Keyword arguments:
@@ -112,7 +115,7 @@ class Holidays(Countries):
     def get_holidays_count_during_weekdays(self,
                                            country_code: str,
                                            start_date: datetime.date,
-                                           end_date: datetime.date):
+                                           end_date: datetime.date) -> int:
         """
         Returns the number of holidays between two dates, not considering
         saturdays and sundays
@@ -136,6 +139,39 @@ class Holidays(Countries):
                 days += 1
 
         return days
+
+    def get_business_days_count(self, country_code: str,
+                                start_date: datetime.date,
+                                end_date: datetime.date) -> int:
+        """
+        Returns the number of businesss days between two dates
+        Keyword arguments:
+            country-code -- ISO 3166 country code
+            start_date -- date to start counting from
+            end_date -- date where to stop counting
+        """
+        for year in range(start_date.year, end_date.year + 1):
+            self.update(country_code, year)
+
+        if start_date > end_date:
+            start_date, end_date = end_date, start_date
+
+        delta = (end_date - start_date).days + 1
+        full_weeks, remaining_days = divmod(delta, 7)
+        business_days = full_weeks * 5
+
+        for i in range(remaining_days):
+            if (start_date.weekday() + i) % 7 < 5:
+                business_days += 1
+
+        # get holidays
+        holidays_count = self.get_holidays_count_during_weekdays(
+            country_code=country_code,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+        return business_days - holidays_count
 
 
 class MagnetDataClient:

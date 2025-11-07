@@ -172,6 +172,15 @@ class TestHolidays(TestCase):
             1,
         )
 
+        self.assertEqual(
+            holidays.get_business_days_count(
+                holidays.CL,
+                datetime.date(2024, 12, 30),
+                datetime.date(2025, 1, 7),
+            ),
+            6,
+        )
+
         self.assertFalse(holidays.is_workday(datetime.date(2020, 9, 18), holidays.CL))
         self.assertFalse(holidays.is_workday(datetime.date(2024, 1, 1), holidays.CL))
 
