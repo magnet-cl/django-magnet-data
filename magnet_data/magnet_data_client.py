@@ -33,14 +33,16 @@ class Holidays(Countries):
         """
         Update values stored in the database with what the api returned
         """
+        normalized_country = country_code.upper()
+        cache_key = (normalized_country, year)
         now = datetime.datetime.now()
         threshold = now - datetime.timedelta(1)
         if (
-            self.last_updated.get(year) is None
-            or self.last_updated.get(year) < threshold
+            self.last_updated.get(cache_key) is None
+            or self.last_updated.get(cache_key) < threshold
         ):
-            self.last_updated[year] = now
-            self.cls.update_holidays(country_code=country_code.upper(), year=year)
+            self.last_updated[cache_key] = now
+            self.cls.update_holidays(country_code=normalized_country, year=year)
 
     def is_workday(self, date, country_code: str) -> bool:
         """

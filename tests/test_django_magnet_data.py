@@ -326,6 +326,25 @@ class TestHolidays(TestCase):
         self.assertTrue(Holiday.objects.filter(date="2023-01-02").count() == 1)
 
 
+
+    @patch("magnet_data.holidays.models.urlopen")
+    def test_holiday_cache_is_isolated_per_country(self, mock_urlopen):
+        co_response = MagicMock()
+        co_response.status = 200
+        co_response.read.return_value = b'{"objects": [{"countryCode": "CO", "date": "2026-07-20", "name": "Independencia", "resourceUri": "/api/v1/holidays/co/1/"}]}'
+
+        cl_response = MagicMock()
+        cl_response.status = 200
+        cl_response.read.return_value = b'{"objects": [{"countryCode": "CL", "date": "2026-09-18", "name": "Fiestas Patrias", "resourceUri": "/api/v1/holidays/cl/2/"}]}'
+
+        mock_urlopen.side_effect = [co_response, cl_response]
+        holidays = MagnetDataClient().holidays
+
+        self.assertFalse(holidays.is_workday(datetime.date(2026, 7, 20), holidays.CO))
+        self.assertFalse(holidays.is_workday(datetime.date(2026, 9, 18), holidays.CL))
+        self.assertEqual(mock_urlopen.call_count, 2)
+
+
 class AdminSiteTests(TestCase):
     def setUp(self):
         User = get_user_model()
